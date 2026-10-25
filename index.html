@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>残留塩素 検査記録</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* 紙の様式をそのまま画面に：上に記入欄、下に一か月分の表、最下部に送信 */
+:root{
+  --bg:#f3f6f7; --paper:#ffffff; --ink:#1d2a30; --muted:#5e6f77; --line:#c9d4d8; --rule:#e3eaed;
+  --water:#1f6f8b; --water-soft:#e2f0f5; --ok:#2e7d4f; --ng:#c0392b; --ng-soft:#fbe9e7; --sun:#c0392b; --sat:#1f5fa8;
+  --f-head:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-body:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1719; --paper:#172226; --ink:#e4ecef; --muted:#93a6ad; --line:#33454c; --rule:#24343a;
+  --water:#5bb3d1; --water-soft:#183843; --ok:#5fc48a; --ng:#ff7b6b; --ng-soft:#3a1f1c; --sun:#ff8a7a; --sat:#7fb2f0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1719; --paper:#172226; --ink:#e4ecef; --muted:#93a6ad; --line:#33454c; --rule:#24343a;
+  --water:#5bb3d1; --water-soft:#183843; --ok:#5fc48a; --ng:#ff7b6b; --ng-soft:#3a1f1c; --sun:#ff8a7a; --sat:#7fb2f0; color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+[hidden]{display:none!important}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px;display:grid;gap:18px}
+h1{font-family:var(--f-head);font-weight:700;font-size:1.35rem;margin:0;letter-spacing:.04em}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;gap:14px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:.8rem;color:var(--muted);letter-spacing:.06em}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--water);outline-offset:1px}
+.ym{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ym select{padding:8px}
+.note{font-size:.8rem;color:var(--muted)}
+.scroll{overflow-x:auto;border:1px solid var(--ink);border-radius:2px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th{font-family:var(--f-head);font-weight:500;font-size:.85rem;background:var(--water-soft);border-bottom:2px solid var(--ink);padding:8px 4px;white-space:nowrap}
+td{border-top:1px solid var(--rule);padding:3px 4px;text-align:center;vertical-align:middle}
+th+th,td+td{border-left:1px solid var(--line)}
+td.d{width:34px;font-weight:700}
+td.w{width:34px}
+tr.sun td.w{color:var(--sun)} tr.sat td.w{color:var(--sat)}
+tr.today td.d,tr.today td.w{background:var(--water-soft)}
+.t{display:flex;gap:4px;align-items:center;justify-content:center}
+.t input{width:92px;padding:5px 4px;text-align:center}
+.now{font-size:.72rem;border:1px solid var(--line);background:transparent;color:var(--water);border-radius:3px;padding:4px 6px;cursor:pointer;white-space:nowrap}
+.cl{width:64px;padding:5px 4px;text-align:center}
+tr.warn .cl{border-color:var(--ng);background:var(--ng-soft);color:var(--ng);font-weight:700}
+.mk{width:40px;height:34px;border:1px solid var(--line);border-radius:4px;background:transparent;color:var(--muted);font-size:1.15rem;cursor:pointer;line-height:1}
+.mk[data-v="o"]{color:var(--ok);border-color:var(--ok)}
+.mk[data-v="x"]{color:var(--ng);border-color:var(--ng);background:var(--ng-soft)}
+.rm{width:100%;min-width:120px;padding:5px 6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--muted)}
+.legend b{color:var(--ng)}
+.send{display:grid;gap:12px}
+.send h2{font-family:var(--f-head);font-size:1.05rem;margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:inherit;font-weight:700;border-radius:4px;padding:10px 16px;cursor:pointer;border:1px solid var(--water)}
+.btn.pri{background:var(--water);color:var(--paper)}
+.btn.sec{background:transparent;color:var(--water)}
+.btn.ghost{border-color:var(--line);color:var(--muted);background:transparent;font-weight:400}
+textarea{width:100%;box-sizing:border-box;min-height:180px;font-family:ui-monospace,Menlo,monospace;font-size:.8rem;line-height:1.5;resize:vertical}
+.msg{font-size:.85rem;color:var(--ok);min-height:1.3em}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.85rem;color:var(--ng)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>残留塩素 検査記録</h1>
+    <p class="sub">毎日の結果を入力して、月末にそのままメールで提出できます。入力内容はこの端末に自動保存されます。</p>
+  </header>
+
+  <section class="sheet">
+    <div class="ym">
+      <select id="year" aria-label="年"></select><span>年</span>
+      <select id="month" aria-label="月"></select><span>月</span>
+    </div>
+    <div class="fields">
+      <label class="f">集落名<input id="village" placeholder="例：○○集落"></label>
+      <label class="f">検査者氏名<input id="inspector" placeholder="例：山田 太郎"></label>
+    </div>
+    <div class="legend">
+      <span>濁度・色度・臭いは目視による（タップで ◯ → ✕ → 空欄）</span>
+      <span>残塩が <b>0.1以下</b> または <b>0.6以上</b> の日は赤く表示します</span>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>日</th><th>曜日</th><th>時間</th><th>残塩</th><th>濁度</th><th>色度</th><th>臭い</th><th>備考</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="note">「今」を押すと現在の時刻が入り、濁度・色度・臭いが空欄なら ◯ になります。</p>
+  </section>
+
+  <section class="sheet send">
+    <h2>メールで提出</h2>
+    <label class="f">送信先メールアドレス<input id="to" type="email" placeholder="例：suido@town.example.jp" autocomplete="email"></label>
+    <div class="row">
+      <button class="btn pri" id="mail" type="button">メールアプリで開く</button>
+      <button class="btn sec" id="copy" type="button">本文をコピー</button>
+      <button class="btn ghost" id="clear" type="button">この月の記録を消す</button>
+    </div>
+    <div class="confirm" id="confirmBox" hidden>
+      <span>この月の入力をすべて消しますか？</span>
+      <button class="btn ghost" id="clearYes" type="button">消す</button>
+      <button class="btn ghost" id="clearNo" type="button">やめる</button>
+    </div>
+    <div class="msg" id="msg" role="status"></div>
+    <p class="note">メールアプリが開かない場合は「本文をコピー」してメールに貼り付けてください。件名：<span id="subj"></span></p>
+    <textarea id="preview" readonly aria-label="メール本文"></textarea>
+  </section>
+</div>
+
+<script>
+const W=["日","月","火","水","木","金","土"];
+const $=id=>document.getElementById(id);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+let data={};
+
+function key(){return "cl-"+$("year").value+"-"+$("month").value}
+function init(){
+  const now=new Date(), last=store.get("cl-last")||{y:2026,m:11};
+  for(let y=now.getFullYear()-1;y<=now.getFullYear()+1;y++)$("year").add(new Option(y,y));
+  for(let m=1;m<=12;m++)$("month").add(new Option(m,m));
+  $("year").value=last.y;$("month").value=last.m;
+  const p=store.get("cl-profile")||{};
+  $("village").value=p.village||"";$("inspector").value=p.inspector||"";$("to").value=p.to||"";
+  load();
+}
+function saveProfile(){store.set("cl-profile",{village:$("village").value,inspector:$("inspector").value,to:$("to").value});preview()}
+function load(){
+  store.set("cl-last",{y:+$("year").value,m:+$("month").value});
+  data=store.get(key())||{};render();
+}
+function save(){store.set(key(),data);preview()}
+function isWarn(v){if(v===""||v==null)return false;const n=parseFloat(v);return !isNaN(n)&&(n<=0.1||n>=0.6)}
+const sym={o:"◯",x:"✕","":""};
+
+function render(){
+  const y=+$("year").value,m=+$("month").value,days=new Date(y,m,0).getDate();
+  const t=new Date(),tb=$("rows");tb.innerHTML="";
+  for(let d=1;d<=days;d++){
+    const wd=new Date(y,m-1,d).getDay(),r=data[d]||{};
+    const tr=document.createElement("tr");
+    if(wd===0)tr.classList.add("sun");if(wd===6)tr.classList.add("sat");
+    if(t.getFullYear()===y&&t.getMonth()+1===m&&t.getDate()===d)tr.classList.add("today");
+    if(isWarn(r.cl))tr.classList.add("warn");
+    tr.innerHTML=`<td class="d">${d}</td><td class="w">${W[wd]}</td>
+<td><div class="t"><input type="time" id="t${d}" value="${esc(r.time||"")}" aria-label="${d}日 時間"><button class="now" type="button">今</button></div></td>
+<td><input class="cl" id="c${d}" type="number" inputmode="decimal" step="0.01" min="0" max="5" value="${esc(r.cl??"")}" placeholder="0.0" aria-label="${d}日 残塩"></td>
+${["tu","co","od"].map((k,i)=>`<td><button class="mk" type="button" data-k="${k}" data-v="${r[k]||""}" aria-label="${d}日 ${["濁度","色度","臭い"][i]}">${sym[r[k]||""]}</button></td>`).join("")}
+<td><input class="rm" id="r${d}" value="${esc(r.rm||"")}" aria-label="${d}日 備考"></td>`;
+    const upd=(k,v)=>{data[d]=Object.assign(data[d]||{},{[k]:v});save()};
+    tr.querySelector(`#t${d}`).addEventListener("input",e=>upd("time",e.target.value));
+    tr.querySelector(`#c${d}`).addEventListener("input",e=>{upd("cl",e.target.value);tr.classList.toggle("warn",isWarn(e.target.value))});
+    tr.querySelector(`#r${d}`).addEventListener("input",e=>upd("rm",e.target.value));
+    tr.querySelectorAll(".mk").forEach(b=>b.addEventListener("click",()=>{
+      const nx={"":"o",o:"x",x:""}[b.dataset.v];b.dataset.v=nx;b.textContent=sym[nx];upd(b.dataset.k,nx)}));
+    tr.querySelector(".now").addEventListener("click",()=>{
+      const n=new Date(),v=String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
+      tr.querySelector(`#t${d}`).value=v;upd("time",v);
+      tr.querySelectorAll(".mk").forEach(b=>{if(!b.dataset.v){b.dataset.v="o";b.textContent="◯";upd(b.dataset.k,"o")}});
+      tr.querySelector(`#c${d}`).focus();
+    });
+    tb.appendChild(tr);
+  }
+  preview();
+}
+
+function subject(){return `残留塩素検査記録 ${$("year").value}年${$("month").value}月（${$("village").value||"集落名未記入"}）`}
+function body(){
+  const y=+$("year").value,m=+$("month").value,days=new Date(y,m,0).getDate();
+  const L=[`${y}年 ${m}月`,`集落名：${$("village").value}`,`検査者氏名：${$("inspector").value}`,`※濁度、色度は目視による`,"",
+    "日 曜 時間   残塩  濁度 色度 臭い 備考","----------------------------------------"];
+  let warns=[];
+  for(let d=1;d<=days;d++){
+    const r=data[d]||{},wd=W[new Date(y,m-1,d).getDay()];
+    const c=(r.cl??"")===""?"  －  ":String(r.cl).padEnd(5," ");
+    const s=k=>sym[r[k]||""]||"－";
+    L.push(`${String(d).padStart(2," ")} ${wd} ${r.time||"  :  "}  ${c} ${s("tu")}  ${s("co")}  ${s("od")}  ${r.rm||""}`.trimEnd());
+    if(isWarn(r.cl))warns.push(`${d}日（${r.cl}）`);
+  }
+  if(warns.length)L.push("","基準外（0.1以下／0.6以上）："+warns.join("、"));
+  return L.join("\n");
+}
+function preview(){$("preview").value=body();$("subj").textContent=subject()}
+function flash(t){$("msg").textContent=t;clearTimeout(flash.h);flash.h=setTimeout(()=>$("msg").textContent="",4000)}
+
+$("year").addEventListener("change",load);$("month").addEventListener("change",load);
+["village","inspector","to"].forEach(id=>$(id).addEventListener("input",saveProfile));
+$("mail").addEventListener("click",()=>{
+  const to=$("to").value.trim();
+  if(!to){flash("送信先メールアドレスを入力してください");$("to").focus();return}
+  location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject())}&body=${encodeURIComponent(body())}`;
+  flash("メールアプリが開かない場合は「本文をコピー」を使ってください");
+});
+$("copy").addEventListener("click",()=>{
+  const txt="件名："+subject()+"\n\n"+body();
+  navigator.clipboard.writeText(txt).then(()=>flash("件名と本文をコピーしました"),()=>{$("preview").select();flash("本文を選択しました。長押しでコピーしてください")});
+});
+$("clear").addEventListener("click",()=>$("confirmBox").hidden=false);
+$("clearNo").addEventListener("click",()=>$("confirmBox").hidden=true);
+$("clearYes").addEventListener("click",()=>{data={};save();render();$("confirmBox").hidden=true;flash("この月の記録を消しました")});
+init();
+</script>
+
+</body>
+</html>
