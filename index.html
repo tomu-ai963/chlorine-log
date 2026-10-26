@@ -121,9 +121,18 @@ const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g
 let data={},clearKey=null;
 
 function key(){return "cl-"+$("year").value+"-"+$("month").value}
+const okYear=y=>Number.isInteger(y)&&y>=2000&&y<=2100;
+// 記録が保存されている年（過去の年を選び直せるように選択肢へ含める）
+function savedYears(){
+  const ys=[];
+  try{for(let i=0;i<localStorage.length;i++){const mt=/^cl-(\d{4})-\d{1,2}$/.exec(localStorage.key(i));if(mt&&okYear(+mt[1]))ys.push(+mt[1])}}catch(e){}
+  return ys;
+}
 function init(){
-  const now=new Date(), last=store.get("cl-last")||{y:2026,m:11};
-  for(let y=now.getFullYear()-1;y<=now.getFullYear()+1;y++)$("year").add(new Option(y,y));
+  const now=new Date(),cy=now.getFullYear(),s=store.get("cl-last");
+  const last=s&&okYear(s.y)&&Number.isInteger(s.m)&&s.m>=1&&s.m<=12?s:{y:cy,m:now.getMonth()+1};
+  const ys=[cy-1,cy+1,last.y,...savedYears()];
+  for(let y=Math.min(...ys);y<=Math.max(...ys);y++)$("year").add(new Option(y,y));
   for(let m=1;m<=12;m++)$("month").add(new Option(m,m));
   $("year").value=last.y;$("month").value=last.m;
   const p=store.get("cl-profile")||{};
