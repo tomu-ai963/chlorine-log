@@ -62,6 +62,7 @@ tr.warn .cl{border-color:var(--ng);background:var(--ng-soft);color:var(--ng);fon
 textarea{width:100%;box-sizing:border-box;min-height:180px;font-family:ui-monospace,Menlo,monospace;font-size:.8rem;line-height:1.5;resize:vertical}
 .msg{font-size:.85rem;color:var(--ok);min-height:1.3em}
 .confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.85rem;color:var(--ng)}
+.alert{border:1px solid var(--ng);background:var(--ng-soft);color:var(--ng);border-radius:6px;padding:10px 14px;font-size:.9rem;font-weight:700;margin:0}
 </style>
 </head>
 <body>
@@ -71,6 +72,7 @@ textarea{width:100%;box-sizing:border-box;min-height:180px;font-family:ui-monosp
     <h1>残留塩素 検査記録</h1>
     <p class="sub">毎日の結果を入力して、月末にそのままメールで提出できます。入力内容はこの端末に自動保存されます。</p>
   </header>
+  <p class="alert" id="saveErr" role="alert" hidden>この端末に保存できませんでした。ページを閉じたり再読み込みしたりすると入力が失われます。下の「本文をコピー」で控えを取ってください。</p>
 
   <section class="sheet">
     <div class="ym">
@@ -116,7 +118,7 @@ textarea{width:100%;box-sizing:border-box;min-height:180px;font-family:ui-monosp
 <script>
 const W=["日","月","火","水","木","金","土"];
 const $=id=>document.getElementById(id);
-const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}};
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
 let data={},clearKey=null;
 
@@ -139,13 +141,19 @@ function init(){
   $("village").value=p.village||"";$("inspector").value=p.inspector||"";$("to").value=p.to||"";
   load();
 }
-function saveProfile(){store.set("cl-profile",{village:$("village").value,inspector:$("inspector").value,to:$("to").value});preview()}
+// 保存に失敗しているキーがある間は警告を出し続け、そのキーの保存が成功したら外す
+const unsaved=new Set();
+function persist(k,v){
+  if(store.set(k,v))unsaved.delete(k);else unsaved.add(k);
+  $("saveErr").hidden=!unsaved.size;
+}
+function saveProfile(){persist("cl-profile",{village:$("village").value,inspector:$("inspector").value,to:$("to").value});preview()}
 function load(){
   hideConfirm();
   store.set("cl-last",{y:+$("year").value,m:+$("month").value});
   data=store.get(key())||{};render();
 }
-function save(){store.set(key(),data);preview()}
+function save(){persist(key(),data);preview()}
 function isWarn(v){if(v===""||v==null)return false;const n=parseFloat(v);return !isNaN(n)&&(n<=0.1||n>=0.6)}
 const sym={o:"◯",x:"✕","":""};
 
