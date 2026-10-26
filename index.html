@@ -215,9 +215,11 @@ $("mail").addEventListener("click",()=>{
   location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject())}&body=${encodeURIComponent(body())}`;
   flash("メールアプリが開かない場合は「本文をコピー」を使ってください");
 });
-$("copy").addEventListener("click",()=>{
+$("copy").addEventListener("click",async()=>{
   const txt="件名："+subject()+"\n\n"+body();
-  navigator.clipboard.writeText(txt).then(()=>flash("件名と本文をコピーしました"),()=>{$("preview").select();flash("本文を選択しました。長押しでコピーしてください")});
+  // Clipboard API がない環境（非セキュアなHTTPなど）でも本文の選択へ進む
+  try{await navigator.clipboard.writeText(txt);flash("件名と本文をコピーしました")}
+  catch(e){$("preview").select();flash("本文を選択しました。長押しでコピーしてください")}
 });
 // 確認を出した時点の年月だけを消す。年月を切り替えたら確認は取り消す
 function hideConfirm(){$("confirmBox").hidden=true;clearKey=null}
