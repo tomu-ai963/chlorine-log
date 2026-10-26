@@ -103,7 +103,7 @@ textarea{width:100%;box-sizing:border-box;min-height:180px;font-family:ui-monosp
       <button class="btn ghost" id="clear" type="button">この月の記録を消す</button>
     </div>
     <div class="confirm" id="confirmBox" hidden>
-      <span>この月の入力をすべて消しますか？</span>
+      <span><b id="clearYm"></b>の入力をすべて消しますか？</span>
       <button class="btn ghost" id="clearYes" type="button">消す</button>
       <button class="btn ghost" id="clearNo" type="button">やめる</button>
     </div>
@@ -118,7 +118,7 @@ const W=["日","月","火","水","木","金","土"];
 const $=id=>document.getElementById(id);
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
-let data={};
+let data={},clearKey=null;
 
 function key(){return "cl-"+$("year").value+"-"+$("month").value}
 function init(){
@@ -132,6 +132,7 @@ function init(){
 }
 function saveProfile(){store.set("cl-profile",{village:$("village").value,inspector:$("inspector").value,to:$("to").value});preview()}
 function load(){
+  hideConfirm();
   store.set("cl-last",{y:+$("year").value,m:+$("month").value});
   data=store.get(key())||{};render();
 }
@@ -201,9 +202,14 @@ $("copy").addEventListener("click",()=>{
   const txt="件名："+subject()+"\n\n"+body();
   navigator.clipboard.writeText(txt).then(()=>flash("件名と本文をコピーしました"),()=>{$("preview").select();flash("本文を選択しました。長押しでコピーしてください")});
 });
-$("clear").addEventListener("click",()=>$("confirmBox").hidden=false);
-$("clearNo").addEventListener("click",()=>$("confirmBox").hidden=true);
-$("clearYes").addEventListener("click",()=>{data={};save();render();$("confirmBox").hidden=true;flash("この月の記録を消しました")});
+// 確認を出した時点の年月だけを消す。年月を切り替えたら確認は取り消す
+function hideConfirm(){$("confirmBox").hidden=true;clearKey=null}
+$("clear").addEventListener("click",()=>{
+  clearKey=key();$("clearYm").textContent=`${$("year").value}年${$("month").value}月`;$("confirmBox").hidden=false});
+$("clearNo").addEventListener("click",hideConfirm);
+$("clearYes").addEventListener("click",()=>{
+  if(clearKey!==key()){hideConfirm();return}
+  data={};save();render();hideConfirm();flash("この月の記録を消しました")});
 init();
 </script>
 
